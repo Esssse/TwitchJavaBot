@@ -5,8 +5,9 @@ import com.cavariux.twitchirc.Chat.User;
 import com.cavariux.twitchirc.Core.TwitchBot;
 import com.etheros.config.Config;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class BotInteractions extends TwitchBot {
 
@@ -15,6 +16,8 @@ public class BotInteractions extends TwitchBot {
 
     int voteY = 0;
     int voteN = 0;
+
+    List<User> voted = new ArrayList<>();
 
 
     public BotInteractions() {
@@ -28,18 +31,59 @@ public class BotInteractions extends TwitchBot {
     {
 
         //ToDo Vote listener
-        if (command.equalsIgnoreCase("yes") && vote)
-            voteY++;
-        else if (command.equalsIgnoreCase("no") && vote)
-            voteN++;
+        if (command.equalsIgnoreCase("yes") && vote) {
+            if (voted.contains(user))
+                this.whisper(user, "You voted already!");
+            else {
+                voteY++;
+                voted.add(user);
+            }
+        }
+        else if (command.equalsIgnoreCase("no") && vote){
+            if (voted.contains(user))
+                this.whisper(user, "You voted already!");
+            else {
+                voteN++;
+                voted.add(user);
+            }
+        }
 
         switch (command.toLowerCase()){
             case "hi":{
-                this.sendMessage(user + "says: Hi Everyone!", channel);
+
+                this.sendMessage(user + " says: Hi Everyone!", channel);
                 break;
             }
+            case "help":{
+
+                this.sendMessage("Commands - !hi, !next, !fire", channel);
+                break;
+            }
+
             case "next":{
                 this.sendMessage(user + " - The next project will probably be a youtube bot.", channel);
+                break;
+            }
+            case "uptime":{
+
+                SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+                Date date1 = new Date();
+
+                String dt1 = format.format(date1);
+                String dt2 = channel.getLiveTime();
+
+                String[] hms1 = dt1.split(":");
+                String[] hms2 = dt2.split(":");
+
+                System.out.println(Integer.parseInt(hms1[0]) - 2 + ":" + Integer.parseInt(hms1[1]) + ":" + Integer.parseInt(hms1[2]));
+                System.out.println(Integer.parseInt(hms2[0]) + ":" + Integer.parseInt(hms2[1]) + ":" + Integer.parseInt(hms2[2]));
+
+                int hours  = Integer.parseInt(hms1[0]) - Integer.parseInt(hms2[0]) - 2;
+                int minutes = Integer.parseInt(hms1[1]) - Integer.parseInt(hms2[1]);
+                int seconds = Integer.parseInt(hms1[2]) - Integer.parseInt(hms2[2]);
+
+                this.sendMessage("Stream started " + hours + " hours and " +  minutes + " minutes ago.", channel);
+
                 break;
             }
             case "fire":{
@@ -49,8 +93,9 @@ public class BotInteractions extends TwitchBot {
                     startTimer(60, channel);
                     break;
                 }
-                else
+                else {
                     this.whisper(user, "We voted recently!");
+                }
             }
         }
     }
@@ -58,7 +103,6 @@ public class BotInteractions extends TwitchBot {
     @Override
     protected void userJoins(User user, Channel channel) {
         this.whisper(user, "Type !help to get a list of commands.");
-        this.sendMessage( user + ": Joined us", channel);
     }
 
     void startTimer(int seconds, Channel channel){
@@ -69,6 +113,9 @@ public class BotInteractions extends TwitchBot {
             public void run() {
                 vote = false;
                 timeOut(5);
+
+                BotInteractions.super.sendMessage("Voted for - " + voteY + " \\  voted against - " + voteN, channel);
+
                 if (voteY > voteN) {
                     BotInteractions.super.sendMessage("Let's watch the campfire and think what should we do.", channel);
                 }else
