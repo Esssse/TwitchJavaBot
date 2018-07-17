@@ -17,6 +17,9 @@ public class BotInteractions extends TwitchBot {
     int voteY = 0;
     int voteN = 0;
 
+    int deaths = 0;
+    int miss = 0;
+
     List<User> voted = new ArrayList<>();
 
 
@@ -86,6 +89,37 @@ public class BotInteractions extends TwitchBot {
 
                 break;
             }
+            case "death":{
+
+                deaths++;
+
+                String death = deaths < 2 ? "time" : "times";
+
+                this.sendMessage("Sia died -> " + deaths + " " + death, channel);
+
+                break;
+            }
+
+            case "skill":{
+
+                int skill = 100 - deaths * 10 - miss * 5;
+
+
+                this.sendMessage("Sia's skill is currently -> " + skill + "/100" , channel);
+
+                break;
+            }
+
+            case "miss":{
+
+                miss++;
+
+
+                this.sendMessage("Sia's missed " + miss + " skills" , channel);
+
+                break;
+            }
+
             case "fire":{
                 if (!voteTimeOut){
                     this.sendMessage( "Should we watch the campfire and think what should we do? Type !yes or !no", channel);

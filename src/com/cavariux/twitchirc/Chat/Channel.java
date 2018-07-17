@@ -323,6 +323,28 @@ public class Channel {
 		}
 	}
 
+    /**
+     * Get time stream started
+     * @return The time stream started
+     */
+    public final String getLiveTime() {
+        if (!this.isLive()) return "";
+        try {
+            URL url = new URL("https://api.twitch.tv/kraken/streams/" + channel.substring(1));
+            URLConnection conn = url.openConnection();
+            conn.setRequestProperty("Client-ID", bot.getClientID());
+            BufferedReader br = new BufferedReader( new InputStreamReader( conn.getInputStream() ));
+            String strs = br.readLine();
+            JsonObject jsonObj = JsonObject.readFrom(strs);
+            String str = jsonObj.get("stream").asObject().get("created_at").asString();
+            str = str.substring(str.indexOf('T') + 1, str.indexOf('Z'));
+            return str;
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
 	/**
 	 * Get the title that the Streamer put
 	 * @return the title
